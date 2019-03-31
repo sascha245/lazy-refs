@@ -13,8 +13,8 @@
   "keywords": [
     "ref",
     "reference",
-    "lazy",
-    "async"
+    "lazy-ref",
+    "async-ref"
   ],
   "scripts": {
     "clean": "rimraf dist .rpt2_cache",
