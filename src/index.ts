@@ -16,13 +16,23 @@ export type RefOptions<V> = {
   timeout?: number;
 };
 
-function loadDeps(deps: Array<Ref<any>>) {
-  return Promise.all(deps.map(dep => dep.use()));
+export type Ref<T> = {
+  use(): void;
+  unuse(): void;
+  value(): Promise<T | undefined>;
+};
+
+function isPromise(obj: any): obj is Promise<any> {
+  return obj && typeof obj.then === 'function';
 }
-function loadFactory<T = any>(
+function loadDeps(deps: Array<Ref<any>>): Promise<any[]> {
+  deps.map(dep => dep.use());
+  return Promise.all(deps.map(dep => dep.value()));
+}
+function loadFactory(
   depsValues: any,
-  factory: RefFactory<T, any>
-): Promise<RefFactoryResult<T>> {
+  factory: RefFactory<any, any>
+): Promise<RefFactoryResult<any>> {
   try {
     const result = factory(depsValues);
     return isPromise(result) ? result : Promise.resolve(result);
@@ -33,20 +43,6 @@ function loadFactory<T = any>(
     });
   }
 }
-function isPromise(obj: any): obj is Promise<any> {
-  return obj && typeof obj.then === 'function';
-}
-
-export interface Ref<T> {
-  use(): Promise<T | undefined>;
-  unuse(): void;
-}
-
-/**
- * TODO
- * debugging utils
- * ref group? for options sharing
- */
 
 export function createRef<T, V = []>(
   factory: RefFactory<T, V>,
@@ -58,10 +54,11 @@ export function createRef<T, V = []>(
 
   // Private instance variables
   let _timeoutHandle: number | undefined;
-  let _promise: Promise<any> = Promise.resolve();
+  let _promise: Promise<T | undefined> = Promise.resolve(undefined);
   let _onDestroy: OnDestroy | undefined;
-  let _vmCount: number = 0;
+  let _useCount: number = 0;
 
+  // Private instance methods
   function loadRef() {
     return loadDeps(_deps)
       .then(values => loadFactory(values, factory))
@@ -71,56 +68,44 @@ export function createRef<T, V = []>(
       });
   }
 
-  function unloadRef() {
-    _deps.map(dep => dep.unuse());
+  function unloadRef(): Promise<undefined> {
+    _deps.forEach(dep => dep.unuse());
     _timeoutHandle = undefined;
 
     if (_onDestroy) {
-      const result = _onDestroy!();
-      if (isPromise(result)) {
-        console.log('on destroy returned a promise');
-        _promise = _promise.then(() => result);
-      }
+      const result = _onDestroy();
       _onDestroy = undefined;
+      return isPromise(result) ? result.then(() => undefined) : Promise.resolve(undefined);
     }
+    return Promise.resolve(undefined);
   }
 
-  // Public API
+  // Public instance methods
   return Object.freeze({
-    use(): Promise<T | undefined> {
-      console.log('use', _vmCount);
-      if (++_vmCount > 1) {
-        return _promise;
+    use() {
+      if (++_useCount > 1) {
+        return;
       }
       if (_timeoutHandle) {
-        console.log('reset handle timeout');
         clearTimeout(_timeoutHandle as any);
         _timeoutHandle = undefined;
-        return _promise;
+        return;
       }
-      console.log('init value');
-      return (_promise = _promise.then(() => loadRef()));
+      _promise = _promise.then(() => loadRef());
+    },
+    value() {
+      return _promise;
     },
     unuse() {
-      console.log('unuse');
-      _promise.then(() => {
-        console.log('then unuse', _vmCount);
-        if (_vmCount > 0 && --_vmCount === 0) {
-          if (_timeout === 0) {
-            console.log('handle immediate timeout');
-            unloadRef();
-          } else if (_timeout > 0) {
-            console.log('start timeout');
-            // Only called when not used for 'timeout' milliseconds
-            _timeoutHandle = setTimeout(() => {
-              console.log('handle timeout');
-              unloadRef();
-            }, _timeout) as any;
-          } else {
-            console.log('no timeout');
-          }
+      if (_useCount > 0 && --_useCount === 0) {
+        if (_timeout === 0) {
+          _promise = _promise.then(() => unloadRef());
+        } else if (_timeout > 0) {
+          setTimeout(() => {
+            _promise = _promise.then(() => unloadRef());
+          }, _timeout);
         }
-      });
+      }
     }
   });
 }

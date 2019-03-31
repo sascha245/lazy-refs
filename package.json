@@ -8,13 +8,17 @@
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/sascha245/weak-resource",
+  "repository": "https://github.com/sascha245/lazy-ref",
   "license": "MIT",
-  "keywords": [],
+  "keywords": [
+    "ref",
+    "reference",
+    "lazy",
+    "async"
+  ],
   "scripts": {
     "clean": "rimraf dist .rpt2_cache",
     "build": "npm run clean && rollup -c",
-    "lint": "tslint",
     "test:unit": "jest --verbose",
     "validate": "npm run build && npm run test:unit && npm pack --dry-run"
   },
