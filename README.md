@@ -1,8 +1,8 @@
-# lazy-ref
+# lazy-refs
 
 ## Install
 
-`npm install lazy-ref --save`
+`npm install lazy-refs --save`
 
 ## Usage
 
@@ -21,7 +21,7 @@ export type Ref<T> = {
 References can return async values
 
 ```ts
-import { createRef } from 'lazy-ref'
+import { createRef } from 'lazy-refs'
 
 interface Texture {
   id: string;
@@ -103,7 +103,7 @@ The project now also contains samples that you can use to directly test out your
 1. Clone the repository
 
 2. Install dependencies
-`npm install install`
+`npm install`
 
 4. Launch unit tests situated in *./tests*. The unit tests are written in Jest.
 `npm run test:unit`

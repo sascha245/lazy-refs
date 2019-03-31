@@ -1,5 +1,5 @@
 {
-  "name": "lazy-ref",
+  "name": "lazy-refs",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.common.js",
@@ -8,13 +8,12 @@
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/sascha245/lazy-ref",
+  "repository": "https://github.com/sascha245/lazy-refs",
   "license": "MIT",
   "keywords": [
-    "ref",
-    "reference",
-    "lazy-ref",
-    "async-ref"
+    "refs",
+    "references",
+    "lazy-refs"
   ],
   "scripts": {
     "clean": "rimraf dist .rpt2_cache",
