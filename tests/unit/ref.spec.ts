@@ -95,7 +95,7 @@ describe('Ref', () => {
   });
 
   it('Create ref with dependencies', async () => {
-    const MyTexture = createRef({
+    const myTextureRef = createRef({
       async created(): Promise<NamedObject> {
         await pause(500);
         return {
@@ -105,7 +105,7 @@ describe('Ref', () => {
       timeout: 0
     });
 
-    const MyMaterial = createRef({
+    const myMaterialRef = createRef({
       created: ({ texture }): Material => {
         return {
           name: 'myMaterial',
@@ -113,14 +113,14 @@ describe('Ref', () => {
         };
       },
       dependencies: {
-        texture: MyTexture
+        texture: myTextureRef
       },
       timeout: 0
     });
 
-    MyMaterial.use();
+    myMaterialRef.use();
 
-    const myMaterial1 = await MyMaterial.value;
+    const myMaterial1 = await myMaterialRef.value;
     expect(myMaterial1).toMatchObject({
       name: 'myMaterial',
       texture: {
@@ -128,14 +128,14 @@ describe('Ref', () => {
       }
     });
 
-    MyMaterial.unuse();
+    myMaterialRef.unuse();
 
-    const myMaterial2 = await MyMaterial.value;
+    const myMaterial2 = await myMaterialRef.value;
     expect(myMaterial2 === undefined);
   });
 
   it('Create ref with dependencies with custom factory function typings', async () => {
-    const MyTexture = createRef({
+    const myTextureRef = createRef({
       async created(): Promise<NamedObject> {
         await pause(500);
         return {
@@ -156,7 +156,7 @@ describe('Ref', () => {
     createMaterialRef(
       'myMaterial2',
       {
-        texture: MyTexture
+        texture: myTextureRef
       },
       0
     );
@@ -164,7 +164,7 @@ describe('Ref', () => {
 
   it('Should call destroyed when not used anymore', async () => {
     const result = await new Promise(resolve => {
-      const MyTexture = createRef({
+      const myTextureRef = createRef({
         async created(): Promise<NamedObject> {
           return {
             name: 'myTexture'
@@ -176,8 +176,8 @@ describe('Ref', () => {
         timeout: 0
       });
 
-      MyTexture.use();
-      MyTexture.unuse();
+      myTextureRef.use();
+      myTextureRef.unuse();
     });
 
     expect(result).toBe(true);
