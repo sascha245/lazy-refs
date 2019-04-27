@@ -14,5 +14,5 @@ export function findRefs(refOrRefs: Ref | Ref[]) {
     }
   };
   recursivOp(refs);
-  return [...set];
+  return Array.from(set);
 }
